@@ -10,6 +10,7 @@ Create a virutal environment:
 https://packaging.python.org/guides/installing-using-pip-and-virtualenv/
 
 pip install selenium
+
 Chrome driver: https://chromedriver.storage.googleapis.com/index.html?path=2.42/
 
 <p><img src="https://i.imgur.com/srIVRih.jpg" width="auto"/></p>

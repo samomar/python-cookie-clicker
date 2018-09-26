@@ -37,7 +37,7 @@ def product_checker():
 def upgrades_checker():
     first_upgrade = driver.find_element_by_css_selector('#upgrade0').get_attribute('class')
     if first_upgrade == 'crate upgrade enabled':
-        upgrades_enabled = driver.find_elements_by_xpath('//*[@class="upgrade unlocked enabled"]')
+        upgrades_enabled = driver.find_elements_by_xpath('//*[@class="crate upgrade enabled"]')
         if upgrades_enabled:
             for upgrade in reversed(upgrades_enabled):
                 upgrade.click()

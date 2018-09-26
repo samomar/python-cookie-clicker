@@ -65,3 +65,4 @@ while True:
                 ticker = 0
                 upgrades_checker()
     except Exception as e:
+        print(e)

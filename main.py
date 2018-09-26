@@ -1,6 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 import random
+import time
 
 chrome_path = "your_chrome_path_here"
 
@@ -12,16 +13,22 @@ driver = webdriver.Chrome(chrome_path, options=chrome_options)
 
 driver.get('http://orteil.dashnet.org/cookieclicker/')
 
-
 big_cookie = driver.find_element_by_id('bigCookie')
 golden_cookie = driver.find_element_by_id('goldenCookie')
 seasonPopup = driver.find_element_by_id('seasonPopup')
 
-try:
-    accept_button = driver.find_element_by_link_text('Got it!')
+def accept_cookie():
+    accept_button = accept_button = driver.find_element_by_link_text('Got it!')
     accept_button.click()
+
+try:
+    accept_cookie()
 except:
-    pass
+    try:
+        time.sleep(2)
+        accept_cookie()
+    except:
+        pass
 
 def cookie_clicker():
     ActionChains(driver).double_click(big_cookie).perform()
@@ -39,7 +46,7 @@ def upgrades_checker():
     if first_upgrade == 'crate upgrade enabled':
         upgrades_enabled = driver.find_elements_by_xpath('//*[@class="crate upgrade enabled"]')
         if upgrades_enabled:
-            for upgrade in reversed(upgrades_enabled):
+            for upgrade in upgrades_enabled:
                 upgrade.click()
 
 
@@ -47,9 +54,10 @@ counter = 0
 ticker = 0
 while True:
     try:
+        cookies = driver.find_element_by_id('cookies').text.split(' ')[0]
         cookie_clicker()
         counter += 1
-        if counter >= random.randrange(1000,2000):
+        if counter >= random.randrange(1000,10000):
             counter = 0
             ticker += 1
             product_checker()
@@ -57,4 +65,3 @@ while True:
                 ticker = 0
                 upgrades_checker()
     except Exception as e:
-        print(e)

@@ -13,4 +13,4 @@ pip install selenium
 
 Chrome driver: https://chromedriver.storage.googleapis.com/index.html?path=2.42/
 
-<p><img src="https://i.imgur.com/srIVRih.jpg" width="auto"/></p>
+<p><img src="https://vignette.wikia.nocookie.net/cookieclicker/images/9/9c/Thinking_Cookie.png/revision/latest?cb=20180906010647" width="auto"/></p>

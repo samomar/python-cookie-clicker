@@ -1,14 +1,15 @@
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 import random
+import operator
 import time
 
 chrome_path = "your_chrome_path_here"
 
 chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument("user-data-dir=cookie-clicker")
-prefs = {"profile.default_content_setting_values.notifications" : 2}
-chrome_options.add_experimental_option("prefs",prefs)
+prefs = {"profile.default_content_setting_values.notifications": 2}
+chrome_options.add_experimental_option("prefs", prefs)
 driver = webdriver.Chrome(chrome_path, options=chrome_options)
 
 driver.get('http://orteil.dashnet.org/cookieclicker/')
@@ -17,21 +18,38 @@ big_cookie = driver.find_element_by_id('bigCookie')
 golden_cookie = driver.find_element_by_id('goldenCookie')
 seasonPopup = driver.find_element_by_id('seasonPopup')
 
+products_dict = {}
+upgrades_dict = {}
+
+
+def current_cookies():
+    cookies = driver.find_element_by_id('cookies').text.split(' ')[0].replace(',', '')
+    return int(cookies)
+
+
 def accept_cookie():
-    accept_button = accept_button = driver.find_element_by_link_text('Got it!')
+    accept_button = driver.find_element_by_link_text('Got it!')
     accept_button.click()
+
 
 try:
     accept_cookie()
-except:
+except Exception as e:
+    print(e)
     try:
         time.sleep(2)
         accept_cookie()
-    except:
+    except Exception as e:
+        print(e)
         pass
 
-def cookie_clicker():
-    ActionChains(driver).double_click(big_cookie).perform()
+
+def price_checker(entity):
+    ActionChains(driver).move_to_element(entity).perform()
+    product_price = driver.find_element_by_id('tooltip').find_element_by_class_name("price").text.replace(',', '')
+    product_name = driver.find_element_by_id('tooltip').find_element_by_class_name("name").text
+    return int(product_price), product_name
+
 
 def product_checker():
     first_product = driver.find_element_by_css_selector('#product0').get_attribute('class')
@@ -39,30 +57,73 @@ def product_checker():
         products_enabled = driver.find_elements_by_xpath('//*[@class="product unlocked enabled"]')
         if products_enabled:
             for product in reversed(products_enabled):
-                product.click()
+                price, name = price_checker(product)
+                if name:
+                    products_dict[name] = price
+                    if is_product_worthy(products_dict):
+                        product.click()  # fix click
+
 
 def upgrades_checker():
+    max_product_value = max(products_dict.items(), key=operator.itemgetter(1))[1]
     first_upgrade = driver.find_element_by_css_selector('#upgrade0').get_attribute('class')
     if first_upgrade == 'crate upgrade enabled':
         upgrades_enabled = driver.find_elements_by_xpath('//*[@class="crate upgrade enabled"]')
         if upgrades_enabled:
             for upgrade in upgrades_enabled:
-                upgrade.click()
+                price, name = price_checker(upgrade)
+                if price and name:
+                    upgrades_dict[name] = price
+
+                    if max_product_value >= (upgrades_dict[name] * 3):
+                        upgrade.click()
 
 
-counter = 0
-ticker = 0
+def is_product_worthy(entity_dict):
+    max_entity_value = max(entity_dict.items(), key=operator.itemgetter(1))[1]
+    cookies = current_cookies()
+    if (cookies / 100 * 50) < max_entity_value:
+        return False
+    else:
+        return True
+
+
+cookie_clicker = """
+// Javascript is faster for clicking - credit: jeresig
+    CookieClicker = {
+        start: function () {
+            this.clickInterval = setInterval(function () {
+                document.getElementById("bigCookie").click();
+            });
+
+            this.goldInterval = setInterval(function () {
+                var shimmer = document.getElementsByClassName("shimmer")[0];
+                if (shimmer) {
+                    shimmer.click();
+                }
+            }, 1000);
+        }
+    };
+
+CookieClicker.start();
+"""
+
+try:
+    driver.execute_script(cookie_clicker)
+except Exception as e:
+    print(e)
+    try:
+        time.sleep(2)
+        driver.execute_script(cookie_clicker)
+    except Exception as e:
+        print(e)
+        exit()
+
 while True:
     try:
-        cookies = driver.find_element_by_id('cookies').text.split(' ')[0]
-        cookie_clicker()
-        counter += 1
-        if counter >= random.randrange(1000,10000):
-            counter = 0
-            ticker += 1
-            product_checker()
-            if ticker >= random.randrange(10,20):
-                ticker = 0
-                upgrades_checker()
+        product_checker()
+        time.sleep(1)
+        upgrades_checker()
+        time.sleep(1)
     except Exception as e:
         print(e)
